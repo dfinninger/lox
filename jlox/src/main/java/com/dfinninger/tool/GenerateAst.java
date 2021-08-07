@@ -33,6 +33,8 @@ public class GenerateAst {
         writer.println();
         writer.format("abstract class %s {\n", baseName);
 
+        defineVisitor(writer, baseName, types);
+
         // The AST Classes
         for (String type : types) {
             String className = type.split(":")[0].trim();
@@ -40,8 +42,21 @@ public class GenerateAst {
             defineType(writer, baseName, className, fields);
         }
 
+        // The base accept() method
+        writer.println();
+        writer.println("    abstract <R> R accept(Visitor<R> visitor);");
+
         writer.println("}");
         writer.close();
+    }
+
+    public static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
+        writer.println("\n    interface Visitor<R> {");
+        for (String type : types) {
+            String typeName = type.split(":")[0].trim();
+            writer.format("\n        R visit%s%s(%s %s);\n", typeName, baseName, typeName, baseName.toLowerCase());
+        }
+        writer.println("    }");
     }
 
     private static void defineType(PrintWriter writer, String baseName, String className, String fieldList) {
@@ -50,7 +65,7 @@ public class GenerateAst {
         writer.format("    static class %s extends %s {\n", className, baseName);
 
         // Fields
-        String[]fields = fieldList.split(", ");
+        String[] fields = fieldList.split(", ");
         for (String field : fields) {
             writer.format("        final %s;\n", field);
         }
@@ -63,6 +78,13 @@ public class GenerateAst {
             String name = field.split(" ")[1];
             writer.format("            this.%s = %s;\n", name, name);
         }
+        writer.println("        }");
+
+        // Visitor Pattern
+        writer.println();
+        writer.println("        @Override");
+        writer.println("        <R> R accept(Visitor<R> visitor) {");
+        writer.format("            return visitor.visit%s%s(this);\n", className, baseName);
         writer.println("        }");
         writer.println("    }");
     }
