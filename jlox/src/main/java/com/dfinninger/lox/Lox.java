@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static com.dfinninger.lox.TokenType.EOF;
+
 
 public class Lox {
     static boolean hadError = false;
@@ -50,9 +52,13 @@ public class Lox {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
 
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.parse();
+
+        // Stop if there was a syntax error
+        if (hadError) return;
+
+        System.out.println(new AstPrinter().print(expression));
     }
 
     // Report an error
@@ -64,6 +70,15 @@ public class Lox {
     public static void report(int line, String where, String message) {
         System.err.println("[" + line + "] Error" + where + ": " + message);
         hadError = true;
+    }
+
+    // Emit an error message
+    static void error(Token token, String message) {
+        if (token.type == EOF) {
+            report(token.line, " at end", message);
+        } else {
+            report(token.line, String.format(" at '%s'", token.lexeme), message);
+        }
     }
 }
 
