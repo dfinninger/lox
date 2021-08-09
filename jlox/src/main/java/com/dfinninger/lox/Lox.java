@@ -12,7 +12,9 @@ import static com.dfinninger.lox.TokenType.EOF;
 
 
 public class Lox {
+    private static final Interpreter interpreter = new Interpreter();
     static boolean hadError = false;
+    static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -31,6 +33,7 @@ public class Lox {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) System.exit(65);
+        if (hadRuntimeError) System.exit(70);
     }
 
     // Start an interactive prompt for lox
@@ -58,7 +61,7 @@ public class Lox {
         // Stop if there was a syntax error
         if (hadError) return;
 
-        System.out.println(new AstPrinter().print(expression));
+        interpreter.interpret(expression);
     }
 
     // Report an error
@@ -79,6 +82,11 @@ public class Lox {
         } else {
             report(token.line, String.format(" at '%s'", token.lexeme), message);
         }
+    }
+
+    static void runtimeError(RuntimeError error){
+        System.err.format("%s\n[line %s]", error.getMessage(), error.token.line);
+        hadRuntimeError = true;
     }
 }
 
