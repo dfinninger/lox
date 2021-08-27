@@ -26,7 +26,7 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return assignment();
     }
 
     private Stmt declaration() {
@@ -68,6 +68,24 @@ public class Parser {
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Expression(expr);
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private Expr equality() {
@@ -235,14 +253,14 @@ public class Parser {
 
     /**
      * Discard tokens until we've reached a statement boundary
-     *
+     * <p>
      * This is used primarily for recovering from a parsing error
      */
     private void synchronize() {
         advance();
 
         while (!isAtEnd()) {
-            if(previous().type == SEMICOLON) return;
+            if (previous().type == SEMICOLON) return;
 
             switch (peek().type) {
                 case CLASS:

@@ -43,4 +43,9 @@ public class AstPrinter implements Expr.Visitor<String> {
     public String visitVariableExpr(Expr.Variable expr) {
         return parenthesize("var", expr);
     }
+
+    @Override
+    public String visitAssignExpr(Expr.Assign expr) {
+        return parenthesize("assign", expr);
+    }
 }
