@@ -54,26 +54,26 @@ public class Parser {
     private Stmt forStatement() {
         consume(LEFT_PAREN, "Expect '(' after 'for'.");
 
-        Stmt initalizer;
+        Stmt initializer;
         if (match(SEMICOLON)) {
-            initalizer = null;
+            initializer = null;
         } else if (match(VAR)) {
-            initalizer = varDeclaration();
+            initializer = varDeclaration();
         } else {
-            initalizer = expressionStatement();
+            initializer = expressionStatement();
         }
 
         Expr condition = null;
         if (!check(SEMICOLON)) {
             condition = expression();
         }
-        consume(SEMICOLON, "Expct ';' after loop condition.");
+        consume(SEMICOLON, "Expect ';' after loop condition.");
 
         Expr increment = null;
         if (!check(RIGHT_PAREN)) {
             increment = expression();
         }
-        consume(RIGHT_PAREN, "Expect ')' after for caluses.");
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.");
 
         Stmt body = statement();
 
@@ -84,8 +84,8 @@ public class Parser {
         if (condition == null) condition = new Expr.Literal(true);
         body = new Stmt.While(condition, body);
 
-        if (initalizer != null) {
-            body = new Stmt.Block(Arrays.asList(initalizer, body));
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
         }
 
         return body;
